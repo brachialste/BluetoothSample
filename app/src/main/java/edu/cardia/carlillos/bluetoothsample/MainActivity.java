@@ -232,9 +232,9 @@ public class MainActivity extends AppCompatActivity {
                 case MESSAGE_READ:
                     if(D) Log.i(TAG, "MESSAGE_READ: " );
 
-                    byte[] readBuf = (byte[]) msg.obj;
+                    ProtocolMessage readMsg = (ProtocolMessage) msg.obj;
                     // construct a string from the valid bytes in the buffer
-                    String readMessage = new String(readBuf, 0, msg.arg1);
+                    String readMessage = readMsg.getData();
                     mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
                     break;
                 case MESSAGE_DEVICE_NAME:
