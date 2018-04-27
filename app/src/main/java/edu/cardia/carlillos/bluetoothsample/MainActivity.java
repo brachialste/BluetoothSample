@@ -2,13 +2,14 @@ package edu.cardia.carlillos.bluetoothsample;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,9 +17,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import edu.cardia.carlillos.bluetoothsample.utils.ProtocolMessage;
@@ -26,6 +24,7 @@ import edu.cardia.carlillos.bluetoothsample.utils.AndroidIdentifier;
 
 import edu.cardia.carlillos.bluetoothsample.bt.BluetoothService;
 import edu.cardia.carlillos.bluetoothsample.bt.DeviceListActivity;
+import io.rmiri.buttonloading.ButtonLoading;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -51,13 +50,8 @@ public class MainActivity extends AppCompatActivity {
     // permissions
     int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
 
-    // Layout Views
-    private ListView mConversationView;
-
     // Name of the connected device
     private String mConnectedDeviceName = null;
-    // Array adapter for the conversation thread
-    private ArrayAdapter<String> mConversationArrayAdapter;
     // String buffer for outgoing messages
     private StringBuffer mOutStringBuffer;
     // Local Bluetooth adapter
@@ -65,8 +59,8 @@ public class MainActivity extends AppCompatActivity {
     // Member object for the chat services
     private BluetoothService mChatService = null;
 
-    // seguridad
-    private TextView messages = null;
+    // boton
+    private ButtonLoading buttonLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,13 +69,29 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        buttonLoading = (ButtonLoading) findViewById(R.id.button_loading);
+        buttonLoading.setOnButtonLoadingListener(new ButtonLoading.OnButtonLoadingListener() {
             @Override
-            public void onClick(View view) {
-                // ENVIAR MENSAJE
+            public void onClick() {
+                if(ApplicationManager.D){
+                    Log.d(TAG, "-> onClick()");
+                }
                 ProtocolMessage bstProtocolMessage = new ProtocolMessage(new AndroidIdentifier(MainActivity.this).generateCombinationID());
                 sendMessage(bstProtocolMessage.getTramaByte());
+            }
+
+            @Override
+            public void onStart() {
+                if(ApplicationManager.D){
+                    Log.d(TAG, "-> onStart()");
+                }
+            }
+
+            @Override
+            public void onFinish() {
+                if(ApplicationManager.D){
+                    Log.d(TAG, "-> onFinish()");
+                }
             }
         });
 
@@ -131,14 +141,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupChat() {
         Log.d(TAG, "setupChat()");
-
-        // Initialize the array adapter for the conversation thread
-        mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
-        mConversationView = (ListView) findViewById(R.id.in);
-        mConversationView.setAdapter(mConversationArrayAdapter);
-
-        /* rcarventepc: se quita el soporte para el enter
-        mOutEditText.setOnEditorActionListener(mWriteListener);*/
 
         // Initialize the BluetoothChatService to perform bluetooth connections
         mChatService = BluetoothService.getInstance(this, mHandler);
@@ -211,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
                     switch (msg.arg1) {
                         case BluetoothService.STATE_CONNECTED:
                             setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
-                            mConversationArrayAdapter.clear();
+                            buttonLoading.setVisibility(View.VISIBLE);
                             break;
                         case BluetoothService.STATE_CONNECTING:
                             setStatus(R.string.title_connecting);
@@ -219,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
                         case BluetoothService.STATE_LISTEN:
                         case BluetoothService.STATE_NONE:
                             setStatus(R.string.title_not_connected);
+                            buttonLoading.setVisibility(View.GONE);
                             break;
                     }
                     break;
@@ -227,7 +230,10 @@ public class MainActivity extends AppCompatActivity {
                     byte[] writeBuf = (byte[]) msg.obj;
                     // construct a string from the buffer
                     String writeMessage = new String(writeBuf);
-                    mConversationArrayAdapter.add("Yo:  " + writeMessage);
+                    if(ApplicationManager.D){
+                        Log.d(TAG, "Yo:  " + writeMessage);
+                    }
+                    buttonLoading.setProgress(false);
                     break;
                 case MESSAGE_READ:
                     if(D) Log.i(TAG, "MESSAGE_READ: " );
@@ -235,7 +241,9 @@ public class MainActivity extends AppCompatActivity {
                     ProtocolMessage readMsg = (ProtocolMessage) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = readMsg.getData();
-                    mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
+                    if(ApplicationManager.D){
+                        Log.d(TAG, mConnectedDeviceName + ":  " + readMessage);
+                    }
                     break;
                 case MESSAGE_DEVICE_NAME:
                     if(D) Log.i(TAG, "MESSAGE_DEVICE_NAME ");
@@ -314,6 +322,21 @@ public class MainActivity extends AppCompatActivity {
             serverIntent = new Intent(this, DeviceListActivity.class);
             startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
             return true;
+        }else if(id == R.id.action_aid){
+            AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
+            builder1.setMessage(getString(R.string.action_aid) + "\n\n" + new AndroidIdentifier(MainActivity.this).generateCombinationID());
+            builder1.setCancelable(true);
+
+            builder1.setPositiveButton(
+                    "OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
+
+            AlertDialog alert11 = builder1.create();
+            alert11.show();
         }
 
         return super.onOptionsItemSelected(item);

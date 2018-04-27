@@ -1,6 +1,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">BluetoothSample</string>
     <string name="action_connect">Conectar</string>
+    <string name="action_aid">Android ID</string>
 
     <!--  BluetoothChat -->
     <string name="send">Send</string>

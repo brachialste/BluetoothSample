@@ -371,26 +371,14 @@ public class BluetoothService {
             if (D) Log.d(TAG, "-> write: " + buffer + " : " + new String(buffer));
             try {
 
-                // TODO: Lo modificamos a que envíe 1 byte cada 500 ms
-                for(int i=0; i<buffer.length-1; i++){
-                    byte[] small = new byte[1];
-                    System.arraycopy(buffer, i, small, 0, 1);
-                    mmOutStream.write(small);
-
-                    // nos dormimos 500 ms
-                    Thread.sleep(500);
-                }
-
-                // TODO: Asi se envia correctamente
-//                mmOutStream.write(buffer);
+                // Message send
+                mmOutStream.write(buffer);
 
                 // Share the sent message back to the UI Activity
                 mHandler.obtainMessage(MainActivity.MESSAGE_WRITE, buffer)
                         .sendToTarget();
             } catch (IOException e) {
                 Log.e(TAG, "Exception during write", e);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
 

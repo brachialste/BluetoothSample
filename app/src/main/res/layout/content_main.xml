@@ -8,12 +8,23 @@
     tools:context=".MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <ListView android:id="@+id/in"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:stackFromBottom="true"
-        android:transcriptMode="alwaysScroll"
-        android:layout_weight="1"
-        />
+    <io.rmiri.buttonloading.ButtonLoading
+        android:visibility="gone"
+        android:id="@+id/button_loading"
+        android:layout_width="250dp"
+        android:layout_height="48dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:BL_backgroundColor="#FFFFFF"
+        app:BL_circleColor="@color/colorAccent"
+        app:BL_circleColorSecond="@color/colorAccent"
+        app:BL_enable="true"
+        app:BL_stateShow="normal"
+        app:BL_text="Enviar"
+        app:BL_textColor="#FFFFFF"
+        app:BL_textSize="18sp" />
+
 
 </android.support.constraint.ConstraintLayout>
